@@ -2,6 +2,11 @@ import os
 import json
 import streamlit as st
 from openai import OpenAI
+try:
+    import requests
+    HAS_REQUESTS = True
+except ImportError:
+    HAS_REQUESTS = False
 
 SYSTEM_PROMPT = """You are SaloonAI, an expert business analytics AI for a premium salon management system.
 Analyze the salon data provided and give:
@@ -61,40 +66,23 @@ def get_ai_client():
     )
 
 def analyze_dashboard_data(data_summary):
-    client = get_ai_client()
-    if not client:
-        return "⚠️ AI agent not configured. Set your OpenCode Zen API key in Settings."
-
-    try:
-        response = client.chat.completions.create(
-            model="DeepSeek V4 Flash Free",
-            messages=[
-                {"role": "system", "content": SYSTEM_PROMPT},
-                {"role": "user", "content": f"Analyze this salon data and provide insights:\n\n{json.dumps(data_summary, indent=2)}"}
-            ],
-            temperature=0.7,
-            max_tokens=1500
-        )
-        return response.choices[0].message.content
-    except Exception as e:
-        return f"⚠️ AI analysis error: {str(e)}"
+    content, error = _call_ai_api([
+        {"role": "system", "content": SYSTEM_PROMPT},
+        {"role": "user", "content": f"Analyze this salon data and provide insights:\n\n{json.dumps(data_summary, indent=2)}"}
+    ])
+    if content:
+        return content
+    return f"⚠️ AI analysis error: {error}"
 
 def get_revenue_prediction(monthly_data):
-    client = get_ai_client()
-    if not client:
+    content, error = _call_ai_api([
+        {"role": "system", "content": "You are a revenue forecasting AI. Based on monthly revenue data, predict next month revenue. Return ONLY a JSON: {\"prediction\": number, \"confidence\": \"high/medium/low\", \"trend\": \"up/down/stable\", \"reason\": \"short reason\"}"},
+        {"role": "user", "content": f"Monthly revenue data (last 12 months): {json.dumps(monthly_data)}"}
+    ])
+    if not content:
         return None
     try:
-        response = client.chat.completions.create(
-            model="DeepSeek V4 Flash Free",
-            messages=[
-                {"role": "system", "content": "You are a revenue forecasting AI. Based on monthly revenue data, predict next month revenue. Return ONLY a JSON: {\"prediction\": number, \"confidence\": \"high/medium/low\", \"trend\": \"up/down/stable\", \"reason\": \"short reason\"}"},
-                {"role": "user", "content": f"Monthly revenue data (last 12 months): {json.dumps(monthly_data)}"}
-            ],
-            temperature=0.3,
-            max_tokens=300
-        )
-        text = response.choices[0].message.content
-        text = text.strip()
+        text = content.strip()
         if text.startswith("```"):
             text = text.split("\n", 1)[1]
             text = text.rsplit("\n", 1)[0]
@@ -105,22 +93,11 @@ def get_revenue_prediction(monthly_data):
         return None
 
 def get_customer_suggestion(customer_data):
-    client = get_ai_client()
-    if not client:
-        return None
-    try:
-        response = client.chat.completions.create(
-            model="DeepSeek V4 Flash Free",
-            messages=[
-                {"role": "system", "content": "You are a salon CRM AI. Suggest personalized offers & retention strategies for customers. Be concise."},
-                {"role": "user", "content": f"Customer data: {json.dumps(customer_data)}"}
-            ],
-            temperature=0.7,
-            max_tokens=500
-        )
-        return response.choices[0].message.content
-    except:
-        return None
+    content, error = _call_ai_api([
+        {"role": "system", "content": "You are a salon CRM AI. Suggest personalized offers & retention strategies for customers. Be concise."},
+        {"role": "user", "content": f"Customer data: {json.dumps(customer_data)}"}
+    ])
+    return content
 
 CHAT_SYSTEM_PROMPT = """You are SaloonAI, an expert business assistant for a premium salon management system.
 You have access to the salon's complete business data including revenue, customers, transactions, expenses, staff, inventory, and appointments.
@@ -135,25 +112,64 @@ Rules:
 7. Always mention specific amounts in ₹ when discussing financial data.
 8. Never make up data — only use what's in the context."""
 
-def chat_with_saloon_data(user_message, data_context):
-    """Send a chat message with salon data context and get AI response."""
-    client = get_ai_client()
-    if not client:
-        return "⚠️ AI agent not configured. Set your OpenCode Zen API key in Settings."
+def _call_ai_api(messages):
+    """Try OpenAI client, fall back to direct HTTP request."""
+    api_key = get_api_key()
+    if not api_key:
+        return None, "API key not configured"
+
+    # Try OpenAI client first
     try:
+        client = OpenAI(api_key=api_key, base_url="https://api.opencode.ai/v1")
         response = client.chat.completions.create(
             model="DeepSeek V4 Flash Free",
-            messages=[
-                {"role": "system", "content": CHAT_SYSTEM_PROMPT},
-                {"role": "user", "content": f"""Here is the current salon business data context:
+            messages=messages,
+            temperature=0.7,
+            max_tokens=1500
+        )
+        if response and hasattr(response, "choices") and response.choices:
+            content = response.choices[0].message.content
+            if content:
+                return content, None
+        return None, f"Unexpected response format: {type(response).__name__}"
+    except Exception as e:
+        err_msg = str(e)
+
+    # Fallback: direct HTTP request
+    if HAS_REQUESTS:
+        try:
+            resp = requests.post(
+                "https://api.opencode.ai/v1/chat/completions",
+                headers={
+                    "Authorization": f"Bearer {api_key}",
+                    "Content-Type": "application/json"
+                },
+                json={"model": "DeepSeek V4 Flash Free", "messages": messages, "temperature": 0.7, "max_tokens": 1500},
+                timeout=60
+            )
+            if resp.status_code == 200:
+                data = resp.json()
+                content = data.get("choices", [{}])[0].get("message", {}).get("content", "")
+                if content:
+                    return content, None
+                return None, "API returned empty content"
+            else:
+                return None, f"API HTTP {resp.status_code}: {resp.text[:300]}"
+        except Exception as e2:
+            return None, f"Direct call also failed: {err_msg} / {str(e2)}"
+    else:
+        return None, err_msg
+
+def chat_with_saloon_data(user_message, data_context):
+    """Send a chat message with salon data context and get AI response."""
+    content, error = _call_ai_api([
+        {"role": "system", "content": CHAT_SYSTEM_PROMPT},
+        {"role": "user", "content": f"""Here is the current salon business data context:
 
 {json.dumps(data_context, indent=2)}
 
 User question: {user_message}"""}
-            ],
-            temperature=0.7,
-            max_tokens=1500
-        )
-        return response.choices[0].message.content
-    except Exception as e:
-        return f"⚠️ AI response error: {str(e)}"
+    ])
+    if content:
+        return content
+    return f"⚠️ AI response error: {error}"
