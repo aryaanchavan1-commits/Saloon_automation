@@ -1,0 +1,24 @@
+[server]
+headless = true
+runOnSave = true
+maxUploadSize = 50
+maxMessageSize = 200
+
+[browser]
+gatherUsageStats = false
+
+[theme]
+base = "dark"
+primaryColor = "#c084fc"
+backgroundColor = "#0a0a0f"
+secondaryBackgroundColor = "#1a1a2e"
+textColor = "#ffffff"
+font = "sans serif"
+
+[runner]
+fastReruns = true
+magicEnabled = true
+
+[global]
+developmentMode = false
+showWarningOnDirectExecution = false
