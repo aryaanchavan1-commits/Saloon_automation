@@ -5,13 +5,26 @@ import plotly.express as px
 import plotly.graph_objects as go
 import hashlib
 import re
+import sys as _sys
+import time as _time
 from datetime import datetime, date, timedelta
-from database import init_db, seed_defaults, get_db, SaloonSetting, backup_database, restore_database, list_backups
-from auth import check_auth, change_password, create_user
-from utils import *
-from ai_agent import analyze_dashboard_data, get_revenue_prediction, get_customer_suggestion, get_api_key, set_api_key_in_db, chat_with_saloon_data
-from reports_pdf import generate_financial_pdf, generate_full_report_pdf
-from styles import CSS, PAGE_CONFIG
+
+for _attempt in range(3):
+    for _mod in ('database', 'auth', 'utils', 'ai_agent', 'reports_pdf', 'styles'):
+        _sys.modules.pop(_mod, None)
+    try:
+        from database import init_db, seed_defaults, get_db, SaloonSetting, backup_database, restore_database, list_backups
+        from auth import check_auth, change_password, create_user
+        from utils import *
+        from ai_agent import analyze_dashboard_data, get_revenue_prediction, get_customer_suggestion, get_api_key, set_api_key_in_db, chat_with_saloon_data
+        from reports_pdf import generate_financial_pdf, generate_full_report_pdf
+        from styles import CSS, PAGE_CONFIG
+        break
+    except KeyError:
+        if _attempt == 2:
+            raise
+        _time.sleep(1)
+del _sys, _time, _attempt, _mod
 
 st.set_page_config(**PAGE_CONFIG)
 st.markdown(CSS, unsafe_allow_html=True)
