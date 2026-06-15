@@ -12,7 +12,6 @@ CSS = """
     * { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; box-sizing: border-box; }
     html, body, .stApp { margin: 0; padding: 0; overflow-x: hidden; }
 
-    /* ── App Background ── */
     .stApp {
         background: #0a0a0f;
         background-image:
@@ -20,7 +19,6 @@ CSS = """
             radial-gradient(ellipse at 80% 100%, rgba(255,50,100,0.04) 0%, transparent 50%);
     }
 
-    /* ── Hide Streamlit Chrome ── */
     #MainMenu, footer, header, div[data-testid="stToolbar"],
     div[data-testid="stDecoration"], div[data-testid="stStatusWidget"],
     section[data-testid="stSidebar"], div[data-testid="collapsedControl"] {
@@ -32,7 +30,6 @@ CSS = """
     }
     .main > div:first-child { padding-top: 0 !important; }
 
-    /* ── Top Bar ── */
     .app-topbar {
         position: fixed; top: 0; left: 0; right: 0; z-index: 999;
         background: linear-gradient(135deg, #1a1a2e, #16213e);
@@ -62,17 +59,14 @@ CSS = """
         color: rgba(255,255,255,0.5); cursor: pointer;
         border-radius: 10px; padding: 0.3rem 0.6rem;
         font-size: 0.75rem; transition: all 0.2s;
-        text-decoration: none; display: inline-block;
-        line-height: 1.2;
+        text-decoration: none; display: inline-block; line-height: 1.2;
     }
     .app-topbar .signout-btn:hover { background: rgba(248,113,113,0.2); color: #f87171; }
 
-    /* ── Content Area ── */
     .app-content {
         padding: 60px 0.75rem 72px 0.75rem; min-height: 100vh;
     }
 
-    /* ── Page Title ── */
     .page-title {
         font-size: 1.25rem; font-weight: 800; color: #fff;
         margin: 0.5rem 0 0.15rem 0;
@@ -82,51 +76,26 @@ CSS = """
         margin: 0 0 1rem 0;
     }
 
-    /* ── Bottom Navigation ── */
     .bottom-nav {
         position: fixed; bottom: 0; left: 0; right: 0; z-index: 999;
-        background: rgba(16,16,24,0.95);
+        background: rgba(16,16,24,0.98);
         backdrop-filter: blur(20px);
         border-top: 1px solid rgba(255,255,255,0.06);
         display: flex; justify-content: space-around;
         align-items: stretch; height: 64px;
         padding: 0; padding-bottom: env(safe-area-inset-bottom, 0);
     }
-    .bottom-nav .nav-item {
-        flex: 1; display: flex; flex-direction: column;
-        align-items: center; justify-content: center;
-        gap: 0.1rem; text-decoration: none;
-        padding: 0.3rem 0; transition: all 0.15s;
-        border: none; background: transparent;
-        cursor: pointer; -webkit-tap-highlight-color: transparent;
-        min-height: 44px; position: relative;
-    }
-    .bottom-nav .nav-item .nav-icon {
-        font-size: 1.3rem; line-height: 1;
-        transition: transform 0.2s;
-    }
-    .bottom-nav .nav-item .nav-label {
-        font-size: 0.6rem; font-weight: 600;
-        color: rgba(255,255,255,0.35);
-    }
-    .bottom-nav .nav-item.active .nav-icon { transform: scale(1.1); }
-    .bottom-nav .nav-item.active .nav-label { color: #c084fc; }
-    .bottom-nav .nav-item.active::before {
-        content: ''; position: absolute; top: 0; left: 25%; right: 25%;
-        height: 2px; background: linear-gradient(90deg, #c084fc, #f472b6);
-        border-radius: 0 0 4px 4px;
-    }
-    .bottom-nav .nav-item:active { opacity: 0.6; }
 
-    /* ── Metric Cards ── */
     .metric-card {
         background: linear-gradient(135deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02));
         border: 1px solid rgba(255,255,255,0.08);
         border-radius: 14px; padding: 1rem 0.75rem;
         text-align: center; backdrop-filter: blur(10px);
         animation: fadeIn 0.3s ease-out;
+        transition: transform 0.2s, box-shadow 0.2s;
         height: 100%;
     }
+    .metric-card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.2); }
     .metric-card .icon { font-size: 1.5rem; margin-bottom: 0.25rem; }
     .metric-card .value {
         font-size: 1.3rem; font-weight: 800;
@@ -140,15 +109,16 @@ CSS = """
         font-weight: 600;
     }
 
-    /* ── Glass Card ── */
     .glass-card {
         background: linear-gradient(135deg, rgba(255,255,255,0.04), rgba(255,255,255,0.01));
         border: 1px solid rgba(255,255,255,0.06);
         border-radius: 14px; padding: 1rem;
         backdrop-filter: blur(10px);
         animation: fadeIn 0.3s ease-out;
+        transition: box-shadow 0.2s;
         margin-bottom: 0.75rem;
     }
+    .glass-card:hover { box-shadow: 0 4px 20px rgba(0,0,0,0.15); }
     .glass-card h3 {
         font-size: 0.9rem; font-weight: 700; color: rgba(255,255,255,0.9);
         margin: 0 0 0.75rem 0;
@@ -160,7 +130,6 @@ CSS = """
         margin: 0 0 0.5rem 0;
     }
 
-    /* ── Auth Screen (centered, fullscreen) ── */
     .auth-screen {
         display: flex; justify-content: center; align-items: center;
         min-height: 100vh; padding: 1.5rem;
@@ -186,7 +155,6 @@ CSS = """
     }
     .auth-header p { color: rgba(255,255,255,0.35); font-size: 0.8rem; }
 
-    /* ── Tab Styling ── */
     .stTabs [data-baseweb="tab-list"] {
         gap: 0.25rem; background: rgba(255,255,255,0.03);
         border-radius: 10px; padding: 0.2rem;
@@ -204,7 +172,6 @@ CSS = """
         color: #fff !important;
     }
 
-    /* ── Buttons ── */
     .stButton > button {
         background: linear-gradient(135deg, #c084fc, #f472b6);
         border: none; color: white; font-weight: 700;
@@ -213,25 +180,28 @@ CSS = """
         transition: all 0.2s;
         box-shadow: 0 4px 16px rgba(192,132,252,0.15);
     }
-    .stButton > button:active { transform: scale(0.97); }
+    .stButton > button:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 6px 24px rgba(192,132,252,0.25);
+    }
+    .stButton > button:active { transform: translateY(0) scale(0.98); }
 
-    /* ── Inputs ── */
     .stTextInput > div > div, .stSelectbox > div > div,
     .stNumberInput > div > div, .stTextArea > div > div {
         background: rgba(255,255,255,0.04) !important;
         border: 1px solid rgba(255,255,255,0.08) !important;
         border-radius: 10px !important; color: white !important;
         min-height: 44px !important; font-size: 0.85rem !important;
+        transition: border-color 0.2s, box-shadow 0.2s !important;
     }
     .stTextInput > div > div:focus-within,
     .stSelectbox > div > div:focus-within,
     .stNumberInput > div > div:focus-within {
         border-color: #c084fc !important;
-        box-shadow: 0 0 0 2px rgba(192,132,252,0.15) !important;
+        box-shadow: 0 0 0 3px rgba(192,132,252,0.15) !important;
     }
     .stTextArea textarea { min-height: 80px !important; }
 
-    /* ── Data Table ── */
     .stDataFrame {
         background: rgba(255,255,255,0.02) !important;
         border-radius: 10px !important;
@@ -242,59 +212,28 @@ CSS = """
         font-size: 0.72rem !important; padding: 0.3rem 0.5rem !important;
     }
 
-    /* ── Alerts ── */
     .stAlert {
         background: rgba(255,255,255,0.03) !important;
         border: 1px solid rgba(255,255,255,0.08) !important;
         border-radius: 10px !important; font-size: 0.8rem !important;
     }
 
-    /* ── Chat / AI Message ── */
-    .chat-message {
-        background: linear-gradient(135deg, rgba(192,132,252,0.08), rgba(244,114,182,0.04));
-        border: 1px solid rgba(192,132,252,0.15);
-        border-radius: 14px; padding: 1rem; margin: 0.5rem 0;
-        font-size: 0.82rem; line-height: 1.6;
-    }
-    .chat-message h3 { color: #c084fc; font-size: 0.9rem; margin-top: 1rem; }
-    .chat-message h3:first-child { margin-top: 0; }
-    .chat-message ul { padding-left: 1.2rem; margin: 0.25rem 0; }
-    .chat-message li { margin: 0.15rem 0; }
-
-    /* ── Expander ── */
     .stExpander {
         background: rgba(255,255,255,0.03);
         border: 1px solid rgba(255,255,255,0.06);
         border-radius: 10px; margin-bottom: 0.5rem;
     }
 
-    /* ── More Grid ── */
     .more-grid {
         display: grid; grid-template-columns: 1fr 1fr; gap: 0.6rem;
         padding: 0.5rem 0;
     }
-    .more-grid .more-item {
-        background: linear-gradient(135deg, rgba(255,255,255,0.04), rgba(255,255,255,0.01));
-        border: 1px solid rgba(255,255,255,0.06);
-        border-radius: 14px; padding: 1.2rem 0.8rem;
-        text-align: center; cursor: pointer;
-        transition: all 0.15s; text-decoration: none;
-        display: flex; flex-direction: column; align-items: center; gap: 0.3rem;
-        min-height: 80px; justify-content: center;
-        color: inherit; width: 100%;
-    }
-    .more-grid .more-item:hover { background: rgba(192,132,252,0.08); border-color: rgba(192,132,252,0.2); }
-    .more-grid .more-item:active { transform: scale(0.96); background: rgba(192,132,252,0.08); }
-    .more-grid .more-item .mi-icon { font-size: 1.6rem; }
-    .more-grid .more-item .mi-label { font-size: 0.75rem; font-weight: 600; color: rgba(255,255,255,0.6); }
 
-    /* ── Animations ── */
     @keyframes fadeIn {
         from { opacity: 0; transform: translateY(8px); }
         to { opacity: 1; transform: translateY(0); }
     }
 
-    /* ── Desktop Horizontal Nav ── */
     .desktop-nav, .desktop-nav-inner, .desktop-nav-logo, .desktop-nav-links,
     .desktop-nav-user, .desktop-nav-extra { display: none; }
 
@@ -316,7 +255,6 @@ CSS = """
         .desktop-nav-user .role-badge { background: rgba(192,132,252,0.12); color: #c084fc; padding: 0.05rem 0.35rem; border-radius: 20px; font-size: 0.55rem; font-weight: 600; }
         .desktop-nav-extra { display: flex; align-items: center; gap: 0; }
 
-        /* Desktop nav buttons */
         .desktop-nav .stButton > button {
             background: transparent !important; border: none !important;
             box-shadow: none !important; color: rgba(255,255,255,0.5) !important;
@@ -331,8 +269,6 @@ CSS = """
             color: #c084fc !important; border: none !important; outline: none !important;
         }
         .desktop-nav .stButton { margin: 0 !important; }
-
-        /* Desktop nav extra buttons (⚙️ 📋) */
         .desktop-nav-extra .stButton > button {
             font-size: 1rem !important; padding: 0.25rem 0.4rem !important;
             color: rgba(255,255,255,0.35) !important;
@@ -344,9 +280,10 @@ CSS = """
             margin: 0 !important; min-height: 100vh;
         }
         .app-content .block-container { max-width: 1200px; margin: 0 auto; }
+
+        .stTabs [data-baseweb="tab-list"] { flex-wrap: wrap; }
     }
 
-    /* ── Bottom Nav Button Styling ── */
     .bottom-nav .stButton > button {
         background: transparent !important; border: none !important;
         box-shadow: none !important; font-size: 1.2rem !important;
@@ -364,7 +301,6 @@ CSS = """
     }
     .bottom-nav .stButton { margin: 0 !important; }
 
-    /* ── More Grid Buttons ── */
     .more-grid-btns .stButton > button {
         background: linear-gradient(135deg, rgba(255,255,255,0.04), rgba(255,255,255,0.01)) !important;
         border: 1px solid rgba(255,255,255,0.06) !important; border-radius: 14px !important;
@@ -378,10 +314,15 @@ CSS = """
     .more-grid-btns .stButton > button:hover {
         background: rgba(192,132,252,0.08) !important;
         border-color: rgba(192,132,252,0.2) !important; color: #fff !important;
+        transform: translateY(-1px);
     }
     .more-grid-btns .stButton { margin: 0 0 0.6rem 0 !important; }
 
-    /* ── Scrollbar ── */
     ::-webkit-scrollbar { width: 0; height: 0; }
+
+    @media print {
+        .app-topbar, .bottom-nav, .desktop-nav { display: none !important; }
+        .app-content { padding: 0 !important; }
+    }
 </style>
 """

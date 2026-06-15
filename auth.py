@@ -76,7 +76,7 @@ def login_page():
             with col2:
                 username = st.text_input("Username", placeholder="Enter your username")
                 password = st.text_input("Password", type="password", placeholder="Enter your password")
-                submitted = st.form_submit_button("Sign In", use_container_width=True, type="primary")
+                submitted = st.form_submit_button("Sign In", width='stretch', type="primary")
                 if submitted:
                     user = authenticate_user(username, password)
                     if user:
@@ -94,7 +94,7 @@ def login_page():
                 new_user = st.text_input("New Username", placeholder="Choose a username")
                 new_pass = st.text_input("New Password", type="password", placeholder="Choose a password")
                 confirm_pass = st.text_input("Confirm Password", type="password", placeholder="Confirm password")
-                reg_submit = st.form_submit_button("Register", use_container_width=True, type="primary")
+                reg_submit = st.form_submit_button("Register", width='stretch', type="primary")
                 if reg_submit:
                     if not new_user or not new_pass:
                         st.warning("Please fill all fields")

@@ -16,8 +16,13 @@ from styles import CSS, PAGE_CONFIG
 st.set_page_config(**PAGE_CONFIG)
 st.markdown(CSS, unsafe_allow_html=True)
 
-init_db()
-seed_defaults()
+@st.cache_resource
+def _init_system():
+    init_db()
+    seed_defaults()
+    return True
+
+_init_system()
 
 if "username" not in st.session_state:
     st.session_state["username"] = ""
@@ -126,7 +131,7 @@ def dashboard_page():
                 margin=dict(l=40, r=40, t=40, b=40),
                 font=dict(color="rgba(255,255,255,0.7)")
             )
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, width='stretch')
         st.markdown('</div>', unsafe_allow_html=True)
 
     with col2:
@@ -134,7 +139,7 @@ def dashboard_page():
         top = cached_top_customers()
         if top:
             top_data = [{"Name": c.name, "Phone": c.phone, "Visits": c.total_visits, "Total Spent": f"₹{c.total_spent:,.0f}", "Last Visit": c.last_visit.strftime("%d %b %Y")} for c in top[:5]]
-            st.dataframe(pd.DataFrame(top_data), hide_index=True, use_container_width=True, height=220)
+            st.dataframe(pd.DataFrame(top_data), hide_index=True, width='stretch', height=220)
         st.markdown('</div>', unsafe_allow_html=True)
 
     st.markdown("<br>", unsafe_allow_html=True)
@@ -145,7 +150,7 @@ def dashboard_page():
         repeat = cached_repeat_customers()
         if repeat:
             repeat_data = [{"Name": r["name"], "Phone": r["phone"], "Visits": r["visits"], "Total": f"₹{r['total_spent']:,.0f}", "Last": r["last_visit"]} for r in repeat[:8]]
-            st.dataframe(pd.DataFrame(repeat_data), hide_index=True, use_container_width=True, height=250)
+            st.dataframe(pd.DataFrame(repeat_data), hide_index=True, width='stretch', height=250)
         st.markdown('</div>', unsafe_allow_html=True)
 
     with col2:
@@ -162,7 +167,7 @@ def dashboard_page():
                 margin=dict(l=20, r=20, t=20, b=20),
                 font=dict(color="rgba(255,255,255,0.7)")
             )
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, width='stretch')
         st.markdown('</div>', unsafe_allow_html=True)
 
 def customers_page():
@@ -180,7 +185,7 @@ def customers_page():
                 amount = st.number_input("Amount Paid (₹)", min_value=0.0, step=50.0, format="%.2f")
                 service = st.selectbox("Service", ["Haircut", "Hair Color", "Facial", "Manicure", "Pedicure", "Spa", "Beard Trim", "Shave", "Styling", "Treatment", "General"])
                 payment = st.selectbox("Payment Method", ["Cash", "UPI", "Card", "Wallet"])
-                submitted = st.form_submit_button("💾 Save Transaction", use_container_width=True, type="primary")
+                submitted = st.form_submit_button("💾 Save Transaction", width='stretch', type="primary")
                 if submitted:
                     if not name or not phone:
                         st.warning("Name and phone required")
@@ -210,7 +215,7 @@ def customers_page():
                         "Service": t.service,
                         "Time": t.timestamp.strftime("%H:%M %d/%m")
                     })
-                st.dataframe(pd.DataFrame(recent_data), hide_index=True, use_container_width=True, height=280)
+                st.dataframe(pd.DataFrame(recent_data), hide_index=True, width='stretch', height=280)
             st.markdown('</div>', unsafe_allow_html=True)
 
     with tab2:
@@ -227,7 +232,7 @@ def customers_page():
                     "Last Visit": c.last_visit.strftime("%d %b %Y %H:%M") if c.last_visit else ""
                 })
             df = pd.DataFrame(data)
-            st.dataframe(df, hide_index=True, use_container_width=True, height=350)
+            st.dataframe(df, hide_index=True, width='stretch', height=350)
             st.caption(f"Total: {len(customers)} customers")
 
             if st.session_state.get("role") == "admin":
@@ -242,14 +247,14 @@ def customers_page():
                         e_phone = st.text_input("Phone", value=sel_cust.phone)
                         e_email = st.text_input("Email", value=sel_cust.email or "")
                         e_notes = st.text_area("Notes", value=sel_cust.notes or "", height=80)
-                        if st.form_submit_button("💾 Save Changes", use_container_width=True, type="primary"):
+                        if st.form_submit_button("💾 Save Changes", width='stretch', type="primary"):
                             if update_customer(sel_cust.id, e_name, e_phone, e_email, e_notes):
                                 st.success("Customer updated!")
                                 st.cache_data.clear()
                                 st.rerun()
                             else:
                                 st.error("Update failed")
-                if st.button("🗑️ Delete Customer", use_container_width=True, type="primary"):
+                if st.button("🗑️ Delete Customer", width='stretch', type="primary"):
                     if delete_customer(sel_cust.id):
                         st.success("Customer deleted!")
                         st.cache_data.clear()
@@ -272,7 +277,7 @@ def customers_page():
                 st.markdown(f"""<div class="metric-card"><div class="icon">🔄</div><div class="value">{ratio:.1f}%</div><div class="label">Repeat Rate ({repeat_count}/{total})</div></div>""", unsafe_allow_html=True)
             with col2:
                 repeat_data = [{"Name": r["name"], "Phone": r["phone"], "Visits": r["visits"], "Total": f"₹{r['total_spent']:,.0f}", "Last": r["last_visit"]} for r in repeat]
-                st.dataframe(pd.DataFrame(repeat_data), hide_index=True, use_container_width=True, height=300)
+                st.dataframe(pd.DataFrame(repeat_data), hide_index=True, width='stretch', height=300)
         else:
             st.info("No repeat customers yet (2+ visits)")
         st.markdown('</div>', unsafe_allow_html=True)
@@ -304,7 +309,7 @@ def transactions_page():
                     "Payment": t.payment_method
                 })
             df = pd.DataFrame(data)
-            st.dataframe(df, hide_index=True, use_container_width=True, height=500)
+            st.dataframe(df, hide_index=True, width='stretch', height=500)
         else:
             st.info("No transactions recorded yet")
         st.markdown('</div>', unsafe_allow_html=True)
@@ -330,7 +335,7 @@ def transactions_page():
                         e_amount = st.number_input("Amount", value=sel_txn.amount, min_value=0.0, step=50.0, format="%.2f")
                         e_service = st.selectbox("Service", ["Haircut", "Hair Color", "Facial", "Manicure", "Pedicure", "Spa", "Beard Trim", "Shave", "Styling", "Treatment", "General"], index=["Haircut", "Hair Color", "Facial", "Manicure", "Pedicure", "Spa", "Beard Trim", "Shave", "Styling", "Treatment", "General"].index(sel_txn.service) if sel_txn.service in ["Haircut", "Hair Color", "Facial", "Manicure", "Pedicure", "Spa", "Beard Trim", "Shave", "Styling", "Treatment", "General"] else 0)
                         e_payment = st.selectbox("Payment", ["Cash", "UPI", "Card", "Wallet"], index=["Cash", "UPI", "Card", "Wallet"].index(sel_txn.payment_method) if sel_txn.payment_method in ["Cash", "UPI", "Card", "Wallet"] else 0)
-                        if st.form_submit_button("💾 Update", use_container_width=True, type="primary"):
+                        if st.form_submit_button("💾 Update", width='stretch', type="primary"):
                             if update_transaction(sel_txn.id, e_amount, e_service, e_payment):
                                 st.success("Transaction updated!")
                                 st.cache_data.clear()
@@ -339,7 +344,7 @@ def transactions_page():
                                 st.error("Update failed")
 
                 st.markdown("<hr style='border-color: rgba(255,255,255,0.05);'>", unsafe_allow_html=True)
-                if st.button("🗑️ Delete Selected Transaction", use_container_width=True, type="primary"):
+                if st.button("🗑️ Delete Selected Transaction", width='stretch', type="primary"):
                     if delete_transaction(txn_map[sel_txn_key].id):
                         st.success("Transaction deleted!")
                         st.cache_data.clear()
@@ -368,7 +373,7 @@ def staff_page():
                     "Joined": s.joined_date.strftime("%d %b %Y") if s.joined_date else ""
                 })
             total_salary = get_staff_salary_total()
-            st.dataframe(pd.DataFrame(data), hide_index=True, use_container_width=True, height=300)
+            st.dataframe(pd.DataFrame(data), hide_index=True, width='stretch', height=300)
             st.caption(f"Total Staff: {len(staff)} · Monthly Salary Budget: ₹{total_salary:,.0f}")
         else:
             st.info("No staff added yet")
@@ -385,7 +390,7 @@ def staff_page():
             with col2:
                 s_salary = st.number_input("Monthly Salary (₹)", min_value=0.0, step=1000.0, format="%.2f")
                 s_commission = st.number_input("Commission Rate (%)", min_value=0.0, max_value=100.0, step=1.0, format="%.1f")
-            s_submit = st.form_submit_button("➕ Add Staff Member", use_container_width=True, type="primary")
+            s_submit = st.form_submit_button("➕ Add Staff Member", width='stretch', type="primary")
             if s_submit:
                 if not s_name:
                     st.warning("Name is required")
@@ -419,7 +424,7 @@ def expenses_page():
                     "Recurring": "🔄 Yes" if e.recurring else "No"
                 })
             total_exp = sum(e.amount for e in expenses)
-            st.dataframe(pd.DataFrame(data), hide_index=True, use_container_width=True, height=350)
+            st.dataframe(pd.DataFrame(data), hide_index=True, width='stretch', height=350)
             st.caption(f"Total Expenses: ₹{total_exp:,.2f}")
         else:
             st.info("No expenses recorded")
@@ -436,7 +441,7 @@ def expenses_page():
                 exp_amount = st.number_input("Amount (₹)", min_value=0.0, step=100.0, format="%.2f")
                 exp_date = st.date_input("Date", value=date.today())
                 exp_recur = st.checkbox("Recurring monthly expense")
-            exp_submit = st.form_submit_button("💸 Add Expense", use_container_width=True, type="primary")
+            exp_submit = st.form_submit_button("💸 Add Expense", width='stretch', type="primary")
             if exp_submit:
                 if exp_amount <= 0:
                     st.warning("Amount must be positive")
@@ -556,7 +561,7 @@ def analytics_page():
             fig.add_trace(go.Bar(x=months, y=rev_vals, name="Revenue", marker_color="rgba(192, 132, 252, 0.7)"))
             fig.add_trace(go.Bar(x=months, y=exp_vals, name="Expenses", marker_color="rgba(248, 113, 113, 0.5)"))
             fig.update_layout(barmode="group", template="plotly_dark", paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", margin=dict(l=40, r=40, t=20, b=40), font=dict(color="rgba(255,255,255,0.7)"))
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, width='stretch')
         st.markdown('</div>', unsafe_allow_html=True)
 
     with col2:
@@ -571,7 +576,7 @@ def analytics_page():
             if prediction:
                 fig.add_trace(go.Scatter(x=["Next"], y=[prediction["prediction"]], mode="markers", name=f'Forecast ({prediction["trend"]})', marker=dict(size=15, color="#fbbf24", symbol="diamond")))
             fig.update_layout(template="plotly_dark", paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", margin=dict(l=40, r=40, t=20, b=40), font=dict(color="rgba(255,255,255,0.7)"))
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, width='stretch')
         st.markdown('</div>', unsafe_allow_html=True)
 
     st.markdown("<br>", unsafe_allow_html=True)
@@ -620,7 +625,7 @@ def analytics_page():
             fig.add_trace(go.Scatter(x=dates, y=revs, mode="lines", name="Daily Revenue", line=dict(color="#c084fc", width=2), yaxis="y"))
             fig.add_trace(go.Scatter(x=dates, y=counts, mode="lines", name="Transactions", line=dict(color="#f472b6", width=2), yaxis="y2"))
             fig.update_layout(template="plotly_dark", paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", margin=dict(l=40, r=40, t=20, b=40), font=dict(color="rgba(255,255,255,0.7)"), yaxis=dict(gridcolor="rgba(255,255,255,0.05)"), yaxis2=dict(overlaying="y", side="right", gridcolor="rgba(255,255,255,0.05)"))
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, width='stretch')
         st.markdown('</div>', unsafe_allow_html=True)
 
 def appointments_page():
@@ -667,7 +672,7 @@ def appointments_page():
                     "Status": f"{status_emoji.get(a.status, '🟡')} {a.status.title()}",
                     "Notes": a.notes or ""
                 })
-            st.dataframe(pd.DataFrame(apt_data), hide_index=True, use_container_width=True, height=300)
+            st.dataframe(pd.DataFrame(apt_data), hide_index=True, width='stretch', height=300)
         else:
             st.info("No appointments for this date")
 
@@ -683,7 +688,7 @@ def appointments_page():
                 new_status = st.selectbox("New Status", ["confirmed", "completed", "cancelled", "no-show", "scheduled"], key="apt_new_status")
             with col3:
                 st.markdown("<br>", unsafe_allow_html=True)
-                if st.button("🔄 Update", use_container_width=True, type="primary"):
+                if st.button("🔄 Update", width='stretch', type="primary"):
                     if update_appointment_status(apt_choices[sel_apt], new_status):
                         st.success(f"Appointment → {new_status}")
                         st.cache_data.clear()
@@ -719,7 +724,7 @@ def appointments_page():
                 apt_duration = st.selectbox("Duration", [15, 30, 45, 60, 90, 120], index=1, format_func=lambda x: f"{x} min")
                 apt_status_init = st.selectbox("Status", ["scheduled", "confirmed"], key="apt_init_status")
 
-            if st.form_submit_button("📅 Book Appointment", use_container_width=True, type="primary"):
+            if st.form_submit_button("📅 Book Appointment", width='stretch', type="primary"):
                 if not customer_choices:
                     st.warning("No customers available. Add a customer first.")
                 else:
@@ -750,7 +755,7 @@ def appointments_page():
             fig = go.Figure()
             fig.add_trace(go.Bar(x=days_of_week, y=counts, marker_color="rgba(192,132,252,0.7)"))
             fig.update_layout(template="plotly_dark", paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", margin=dict(l=40, r=40, t=20, b=40), font=dict(color="rgba(255,255,255,0.7)"))
-            st.plotly_chart(fig, use_container_width=True)
+            st.plotly_chart(fig, width='stretch')
         else:
             st.info("No appointments this week")
         st.markdown('</div>', unsafe_allow_html=True)
@@ -778,7 +783,7 @@ def invoices_page():
                     "Status": "✅ Paid" if inv.status == "paid" else "⏳ Pending"
                 })
             df = pd.DataFrame(inv_data)
-            st.dataframe(df, hide_index=True, use_container_width=True, height=350)
+            st.dataframe(df, hide_index=True, width='stretch', height=350)
 
             st.markdown("<hr style='border-color: rgba(255,255,255,0.05);'>", unsafe_allow_html=True)
             sel_inv = st.selectbox("Select Invoice for Details", [f"{i.invoice_number} - {i.customer.name if i.customer else '?'}" for i in invoices])
@@ -815,7 +820,7 @@ def invoices_page():
                 </div>
                 """
                 st.markdown(inv_html, unsafe_allow_html=True)
-                st.download_button("📥 Download Invoice HTML", inv_html.encode("utf-8"), f"{selected.invoice_number}.html", "text/html", use_container_width=True)
+                st.download_button("📥 Download Invoice HTML", inv_html.encode("utf-8"), f"{selected.invoice_number}.html", "text/html", width='stretch')
         else:
             st.info("No invoices generated yet")
         st.markdown('</div>', unsafe_allow_html=True)
@@ -841,7 +846,7 @@ def invoices_page():
                     total = sel_txn.amount + (sel_txn.amount * tax_pct / 100) - discount
                     st.metric("Total", f"₹{total:,.2f}")
 
-                if st.button("🧾 Generate Invoice", use_container_width=True, type="primary"):
+                if st.button("🧾 Generate Invoice", width='stretch', type="primary"):
                     inv = create_invoice(sel_txn.id, sel_txn.customer_id, sel_txn.amount, tax_pct, discount)
                     if inv:
                         st.success(f"✅ Invoice {inv.invoice_number} generated!")
@@ -885,7 +890,7 @@ def inventory_page():
                     "Supplier": supplier_name, "Status": status
                 })
             df = pd.DataFrame(item_data)
-            st.dataframe(df, hide_index=True, use_container_width=True, height=350)
+            st.dataframe(df, hide_index=True, width='stretch', height=350)
 
             st.markdown("<hr style='border-color: rgba(255,255,255,0.05);'>", unsafe_allow_html=True)
             st.markdown("<h4>✏️ Update Stock Quantity</h4>", unsafe_allow_html=True)
@@ -897,7 +902,7 @@ def inventory_page():
                 new_qty = st.number_input("New Quantity", min_value=0.0, step=1.0, format="%.0f", key="stock_update_qty")
             with col3:
                 st.markdown("<br>", unsafe_allow_html=True)
-                if st.button("🔄 Update", use_container_width=True, type="primary"):
+                if st.button("🔄 Update", width='stretch', type="primary"):
                     if update_inventory_quantity(item_names[selected_item], new_qty):
                         st.success("Stock updated!")
                         st.cache_data.clear()
@@ -928,7 +933,7 @@ def inventory_page():
                 inv_supplier = st.selectbox("Supplier", list(supplier_choices.keys()))
                 inv_notes = st.text_area("Notes", placeholder="Optional notes", height=80)
 
-            if st.form_submit_button("➕ Add Inventory Item", use_container_width=True, type="primary"):
+            if st.form_submit_button("➕ Add Inventory Item", width='stretch', type="primary"):
                 if not inv_name:
                     st.warning("Item name is required")
                 else:
@@ -947,7 +952,7 @@ def inventory_page():
             supp_data = []
             for s in supps:
                 supp_data.append({"Name": s.name, "Contact": s.contact_person, "Phone": s.phone, "Email": s.email})
-            st.dataframe(pd.DataFrame(supp_data), hide_index=True, use_container_width=True, height=200)
+            st.dataframe(pd.DataFrame(supp_data), hide_index=True, width='stretch', height=200)
         else:
             st.info("No suppliers yet")
 
@@ -963,7 +968,7 @@ def inventory_page():
                 sup_email = st.text_input("Email")
                 sup_address = st.text_area("Address", height=60)
                 sup_notes = st.text_area("Notes", height=60)
-            if st.form_submit_button("💾 Save Supplier", use_container_width=True, type="primary"):
+            if st.form_submit_button("💾 Save Supplier", width='stretch', type="primary"):
                 if not sup_name:
                     st.warning("Supplier name is required")
                 else:
@@ -995,9 +1000,9 @@ def reports_page():
                     "Payment": t.payment_method
                 })
             df = pd.DataFrame(data)
-            st.dataframe(df, hide_index=True, use_container_width=True, height=350)
+            st.dataframe(df, hide_index=True, width='stretch', height=350)
             csv = df.to_csv(index=False).encode("utf-8")
-            st.download_button("📥 Download CSV", csv, f"transactions_{date.today()}.csv", "text/csv", use_container_width=True, type="primary")
+            st.download_button("📥 Download CSV", csv, f"transactions_{date.today()}.csv", "text/csv", width='stretch', type="primary")
         else:
             st.info("No transactions data")
         st.markdown('</div>', unsafe_allow_html=True)
@@ -1015,9 +1020,9 @@ def reports_page():
                     "Last Visit": c.last_visit.strftime("%d-%b-%Y") if c.last_visit else ""
                 })
             df = pd.DataFrame(data)
-            st.dataframe(df, hide_index=True, use_container_width=True, height=350)
+            st.dataframe(df, hide_index=True, width='stretch', height=350)
             csv = df.to_csv(index=False).encode("utf-8")
-            st.download_button("📥 Download CSV", csv, f"customers_{date.today()}.csv", "text/csv", use_container_width=True, type="primary")
+            st.download_button("📥 Download CSV", csv, f"customers_{date.today()}.csv", "text/csv", width='stretch', type="primary")
         else:
             st.info("No customer data")
         st.markdown('</div>', unsafe_allow_html=True)
@@ -1059,11 +1064,11 @@ def reports_page():
 
         col1, col2 = st.columns(2)
         with col1:
-            st.download_button("📥 Download Report (.txt)", report.encode("utf-8"), f"financial_report_{date.today()}.txt", "text/plain", use_container_width=True, type="primary")
+            st.download_button("📥 Download Report (.txt)", report.encode("utf-8"), f"financial_report_{date.today()}.txt", "text/plain", width='stretch', type="primary")
         with col2:
             with st.spinner("Generating PDF..."):
                 pdf_buf = generate_financial_pdf()
-            st.download_button("📄 Download PDF Report", pdf_buf.read(), f"financial_report_{date.today()}.pdf", "application/pdf", use_container_width=True, type="primary")
+            st.download_button("📄 Download PDF Report", pdf_buf.read(), f"financial_report_{date.today()}.pdf", "application/pdf", width='stretch', type="primary")
         st.markdown('</div>', unsafe_allow_html=True)
 
     with tab4:
@@ -1109,11 +1114,11 @@ def reports_page():
         if combined_csv:
             col1, col2 = st.columns(2)
             with col1:
-                st.download_button("📥 Download All Data (.csv)", combined_csv.encode("utf-8"), f"saloon_full_export_{date.today()}.csv", "text/csv", use_container_width=True, type="primary")
+                st.download_button("📥 Download All Data (.csv)", combined_csv.encode("utf-8"), f"saloon_full_export_{date.today()}.csv", "text/csv", width='stretch', type="primary")
             with col2:
                 with st.spinner("Generating complete PDF report..."):
                     pdf_buf = generate_full_report_pdf()
-                st.download_button("📄 Download Complete PDF Report", pdf_buf.read(), f"saloon_full_report_{date.today()}.pdf", "application/pdf", use_container_width=True, type="primary")
+                st.download_button("📄 Download Complete PDF Report", pdf_buf.read(), f"saloon_full_report_{date.today()}.pdf", "application/pdf", width='stretch', type="primary")
         else:
             st.info("No data to export")
         st.markdown('</div>', unsafe_allow_html=True)
@@ -1135,7 +1140,7 @@ def settings_page():
         st.markdown(f"<p style='color: rgba(255,255,255,0.5);'>Role: <span style='color: #fbbf24; text-transform: capitalize;'>{role}</span> · Logged in since this session</p>", unsafe_allow_html=True)
         st.markdown("<hr style='border-color: rgba(255,255,255,0.05);'>", unsafe_allow_html=True)
 
-        if st.button("🚪 Sign Out", use_container_width=True):
+        if st.button("🚪 Sign Out", width='stretch'):
             for key in ["authenticated", "username", "role"]:
                 if key in st.session_state:
                     del st.session_state[key]
@@ -1148,7 +1153,7 @@ def settings_page():
         with st.form("password_form"):
             new_pass = st.text_input("New Password", type="password", placeholder="Enter new password")
             confirm = st.text_input("Confirm Password", type="password", placeholder="Confirm new password")
-            if st.form_submit_button("🔄 Update Password", use_container_width=True, type="primary"):
+            if st.form_submit_button("🔄 Update Password", width='stretch', type="primary"):
                 if not new_pass:
                     st.warning("Password cannot be empty")
                 elif new_pass != confirm:
@@ -1172,7 +1177,7 @@ def settings_page():
                     np = st.text_input("Password", type="password")
                 with col2:
                     nr = st.selectbox("Role", ["admin", "staff", "receptionist"])
-                if st.form_submit_button("➕ Create User", use_container_width=True):
+                if st.form_submit_button("➕ Create User", width='stretch'):
                     if nu and np and len(np) >= 4:
                         from auth import create_user as _create_user
                         if _create_user(nu, np, nr):
@@ -1200,7 +1205,7 @@ def settings_page():
             st.markdown("<hr style='border-color: rgba(255,255,255,0.05);'>", unsafe_allow_html=True)
             with st.form("api_key_form"):
                 new_key = st.text_input("OpenCode Zen API Key", type="password", placeholder="sk-... or opencode-zen-api-...", value=current_key if current_key else "")
-                if st.form_submit_button("💾 Save API Key", use_container_width=True, type="primary"):
+                if st.form_submit_button("💾 Save API Key", width='stretch', type="primary"):
                     if new_key:
                         set_api_key_in_db(new_key)
                         st.success("✅ API key saved! AI features are now active.")
@@ -1208,7 +1213,7 @@ def settings_page():
                         st.rerun()
                     else:
                         st.warning("Please enter a valid API key")
-                if current_key and st.form_submit_button("🗑️ Clear API Key", use_container_width=True):
+                if current_key and st.form_submit_button("🗑️ Clear API Key", width='stretch'):
                     set_api_key_in_db("")
                     st.success("API key cleared")
                     st.cache_data.clear()
@@ -1222,7 +1227,7 @@ def settings_page():
 
             col1, col2 = st.columns(2)
             with col1:
-                if st.button("📀 Create Backup Now", use_container_width=True, type="primary"):
+                if st.button("📀 Create Backup Now", width='stretch', type="primary"):
                     try:
                         fname = backup_database()
                         st.success(f"✅ Backup created: {fname}")
@@ -1237,10 +1242,10 @@ def settings_page():
             backups = list_backups()
             if backups:
                 bdf = pd.DataFrame(backups)
-                st.dataframe(bdf, hide_index=True, use_container_width=True, height=200)
+                st.dataframe(bdf, hide_index=True, width='stretch', height=200)
 
                 sel_backup = st.selectbox("Select backup to restore", [b["file"] for b in backups], key="restore_backup")
-                if st.button("⚠️ Restore Selected Backup", use_container_width=True):
+                if st.button("⚠️ Restore Selected Backup", width='stretch'):
                     try:
                         restore_database(sel_backup)
                         st.success(f"✅ Restored from {sel_backup}. Reloading...")
@@ -1282,7 +1287,7 @@ def more_page():
     mc = st.columns(2)
     for idx, (icon, label, key) in enumerate(more_items):
         with mc[idx % 2]:
-            if st.button(f"{icon}\n{label}", key=f"m_{key}", use_container_width=True):
+            if st.button(f"{icon}\n{label}", key=f"m_{key}", width='stretch'):
                 st.query_params["page"] = key
                 st.rerun()
     st.markdown('</div>', unsafe_allow_html=True)
@@ -1378,12 +1383,12 @@ def ai_chat_page():
         for idx, (icon, label, key) in enumerate(quick_items):
             if role == "admin" or key not in ["staff", "expenses", "inventory", "reports", "analytics", "invoices"]:
                 with qc[idx % 2]:
-                    if st.button(f"{icon} {label}", key=f"q_{key}", use_container_width=True):
+                    if st.button(f"{icon} {label}", key=f"q_{key}", width='stretch'):
                         st.query_params["page"] = key
                         st.rerun()
         st.markdown('</div>', unsafe_allow_html=True)
 
-    if st.button("🗑️ Clear Chat History", use_container_width=True):
+    if st.button("🗑️ Clear Chat History", width='stretch'):
         st.session_state.chat_history = []
         st.rerun()
 
@@ -1420,7 +1425,7 @@ def main():
     dn_cols = st.columns(len(NAV_ITEMS))
     for i, (icon, label, key) in enumerate(NAV_ITEMS):
         with dn_cols[i]:
-            if st.button(icon, key=f"dn_{key}", help=label, use_container_width=True):
+            if st.button(icon, key=f"dn_{key}", help=label, width='stretch'):
                 go(key)
 
     st.markdown(f"""
@@ -1431,10 +1436,10 @@ def main():
 
     ex_cols = st.columns(2)
     with ex_cols[0]:
-        if st.button("📋", key="dn_more", help="More", use_container_width=True):
+        if st.button("📋", key="dn_more", help="More", width='stretch'):
             go("more")
     with ex_cols[1]:
-        if st.button("⚙️", key="dn_settings", help="Settings", use_container_width=True):
+        if st.button("⚙️", key="dn_settings", help="Settings", width='stretch'):
             go("settings")
 
     st.markdown("</div></div></div>", unsafe_allow_html=True)
@@ -1469,7 +1474,7 @@ def main():
         with bn_cols[i]:
             is_active = (key == page)
             active_class = " nav-active" if is_active else ""
-            if st.button(f"{icon}\n{label}", key=f"bn_{key}", help=label, use_container_width=True):
+            if st.button(f"{icon}\n{label}", key=f"bn_{key}", help=label, width='stretch'):
                 go(key)
     st.markdown('</div>', unsafe_allow_html=True)
 

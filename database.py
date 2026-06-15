@@ -231,13 +231,16 @@ def get_db_context():
 
 
 def seed_defaults():
-    with session_scope() as db:
-        existing = db.query(User).filter(User.username == "admin").first()
-        if not existing:
-            import bcrypt
-            hashed = bcrypt.hashpw("admin123".encode(), bcrypt.gensalt()).decode()
-            db.add(User(username="admin", password_hash=hashed, role="admin"))
-            logger.info("Default admin user created (admin / admin123)")
+    try:
+        with session_scope() as db:
+            existing = db.query(User).filter(User.username == "admin").first()
+            if not existing:
+                import bcrypt
+                hashed = bcrypt.hashpw("admin123".encode(), bcrypt.gensalt()).decode()
+                db.add(User(username="admin", password_hash=hashed, role="admin"))
+                logger.info("Default admin user created (admin / admin123)")
+    except Exception:
+        pass  # Swallow race-condition duplicates; admin user already exists
 
 
 # ─── Backup & Restore (SQLite-optimized) ───
