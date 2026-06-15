@@ -9,7 +9,7 @@ from datetime import datetime, date, timedelta
 from database import init_db, seed_defaults, get_db, SaloonSetting, backup_database, restore_database, list_backups
 from auth import check_auth, change_password, create_user
 from utils import *
-from ai_agent import analyze_dashboard_data, get_revenue_prediction, get_customer_suggestion, get_api_key, set_api_key_in_db
+from ai_agent import analyze_dashboard_data, get_revenue_prediction, get_customer_suggestion, get_api_key, set_api_key_in_db, chat_with_saloon_data
 from reports_pdf import generate_financial_pdf, generate_full_report_pdf
 from styles import CSS, PAGE_CONFIG
 
@@ -60,7 +60,7 @@ NAV_ITEMS = [
     ("📅", "Book", "appointments"),
     ("👥", "Clients", "customers"),
     ("💰", "Sales", "transactions"),
-    ("📋", "More", "more"),
+    ("🤖", "AI", "ai_chat"),
 ]
 
 MORE_PAGES = {
@@ -1275,30 +1275,153 @@ def more_page():
     allowed = ["staff", "expenses", "inventory", "reports", "analytics", "invoices"]
     more_items = [(icon, label, key) for icon, label, key in [
         ("👨‍💼", "Staff", "staff"), ("📦", "Expenses", "expenses"), ("📦", "Stock", "inventory"),
-        ("📄", "Reports", "reports"), ("🤖", "AI Analytics", "analytics"), ("🧾", "Invoices", "invoices"),
+        ("📄", "Reports", "reports"), ("📊", "AI Analytics", "analytics"), ("🧾", "Invoices", "invoices"),
         ("⚙️", "Settings", "settings"),
     ] if role == "admin" or key not in ["staff", "expenses", "inventory", "reports", "analytics", "invoices"]]
 
     html = '<div class="more-grid">'
     for icon, label, key in more_items:
-        html += f'<a href="?page={key}" class="more-item"><span class="mi-icon">{icon}</span><span class="mi-label">{label}</span></a>'
+        html += f'<button class="more-item" onclick="window.location.href=\'?page={key}\'" type="button"><span class="mi-icon">{icon}</span><span class="mi-label">{label}</span></button>'
     html += '</div>'
     st.markdown(html, unsafe_allow_html=True)
 
+
+def gather_salon_context():
+    """Gather full salon data context for AI chat."""
+    stats = get_dashboard_stats()
+    monthly = get_monthly_revenue()
+    repeat = get_repeat_customers()
+    expenses = load_expenses()
+    staff = load_staff()
+    top_customers = get_top_customers(5)
+    salary_total = get_staff_salary_total()
+    total_expenses = sum(e.amount for e in expenses)
+    net_profit = stats["total_revenue"] - total_expenses - salary_total
+    repeat_ratio = len(repeat) / stats["total_customers"] * 100 if stats["total_customers"] > 0 else 0
+    avg_txn = stats["total_revenue"] / stats["total_transactions"] if stats["total_transactions"] > 0 else 0
+    customer_list = [{"name": c.name, "phone": c.phone, "total_visits": c.total_visits, "total_spent": c.total_spent} for c in top_customers]
+    expense_by_cat = cached_expense_categories()
+    appointments_today = get_appointment_stats()
+    return {
+        "business_name": "Saloon Pro",
+        "report_date": datetime.now().strftime("%d %B %Y %H:%M"),
+        "revenue": {
+            "total": stats["total_revenue"], "this_month": stats["month_revenue"],
+            "today": stats["today_revenue"], "monthly_breakdown": monthly
+        },
+        "customers": {
+            "total": stats["total_customers"], "repeat_customers": len(repeat),
+            "repeat_rate_pct": round(repeat_ratio, 1), "top_customers": customer_list
+        },
+        "transactions": {"total": stats["total_transactions"], "average_value_rs": round(avg_txn, 2)},
+        "staff": {"count": len(staff), "total_salaries_rs": salary_total},
+        "expenses": {"total_rs": total_expenses, "by_category": expense_by_cat},
+        "profit": {
+            "gross_revenue_rs": stats["total_revenue"], "total_expenses_rs": total_expenses,
+            "staff_salaries_rs": salary_total, "net_profit_rs": net_profit,
+            "profit_margin_pct": round((net_profit / stats["total_revenue"] * 100), 1) if stats["total_revenue"] > 0 else 0
+        },
+        "appointments": {"today": appointments_today['today'], "completed": appointments_today['completed'], "upcoming": appointments_today['upcoming']}
+    }
+
+def ai_chat_page():
+    render_header("AI Assistant", "Chat with your salon business data")
+
+    if "chat_history" not in st.session_state:
+        st.session_state.chat_history = []
+    if "context_cached" not in st.session_state:
+        st.session_state.context_cached = None
+
+    st.markdown('<div class="glass-card">', unsafe_allow_html=True)
+    st.markdown("<h3>🧠 SaloonAI — Your Business Intelligence Agent</h3>", unsafe_allow_html=True)
+    st.markdown("<p style='color: rgba(255,255,255,0.5); font-size:0.8rem;'>Ask anything about your revenue, customers, expenses, staff, appointments, and more.</p>", unsafe_allow_html=True)
+    st.markdown("</div>", unsafe_allow_html=True)
+
+    for msg in st.session_state.chat_history:
+        role = msg["role"]
+        content = msg["content"]
+        if role == "user":
+            st.markdown(f"""<div style="display:flex;justify-content:flex-end;margin:0.5rem 0;">
+                <div style="background:linear-gradient(135deg,rgba(192,132,252,0.2),rgba(244,114,182,0.1));border:1px solid rgba(192,132,252,0.2);border-radius:14px 14px 4px 14px;padding:0.7rem 1rem;max-width:85%;font-size:0.85rem;color:rgba(255,255,255,0.9);">
+                    {content}
+                </div>
+            </div>""", unsafe_allow_html=True)
+        else:
+            st.markdown(f"""<div style="display:flex;margin:0.5rem 0;">
+                <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06);border-radius:14px 14px 14px 4px;padding:0.7rem 1rem;max-width:90%;font-size:0.82rem;line-height:1.6;color:rgba(255,255,255,0.85);">
+                    {content}
+                </div>
+            </div>""", unsafe_allow_html=True)
+
+    user_input = st.chat_input("Ask about your salon business...", key="ai_chat_input")
+
+    if user_input:
+        st.session_state.chat_history.append({"role": "user", "content": user_input})
+        with st.spinner("🧠 Thinking..."):
+            ctx = gather_salon_context()
+            response = chat_with_saloon_data(user_input, ctx)
+        st.session_state.chat_history.append({"role": "assistant", "content": response})
+        st.rerun()
+
+    st.markdown("<br>", unsafe_allow_html=True)
+    with st.expander("📋 Quick Actions (Staff, Expenses, Reports, etc.)"):
+        role = st.session_state.get("role", "staff")
+        allowed = ["staff", "expenses", "inventory", "reports", "invoices", "settings"]
+        quick_items = [
+            ("👨‍💼", "Staff", "staff"), ("📦", "Expenses", "expenses"),
+            ("📦", "Stock", "inventory"), ("📄", "Reports", "reports"),
+            ("🧾", "Invoices", "invoices"), ("⚙️", "Settings", "settings"),
+        ]
+        html = '<div class="more-grid">'
+        for icon, label, key in quick_items:
+            if role == "admin" or key not in ["staff", "expenses", "inventory", "reports", "analytics", "invoices"]:
+                html += f'<button class="more-item" onclick="window.location.href=\'?page={key}\'" type="button"><span class="mi-icon">{icon}</span><span class="mi-label">{label}</span></button>'
+        html += '</div>'
+        st.markdown(html, unsafe_allow_html=True)
+
+    if st.button("🗑️ Clear Chat History", use_container_width=True):
+        st.session_state.chat_history = []
+        st.rerun()
+
+def render_nav_link(key, icon, label, active, container_class, item_class):
+    active_cls = f"{item_class} active" if active else item_class
+    return f'<button class="{active_cls}" onclick="window.location.href=\'?page={key}\'" type="button"><span class="nav-icon">{icon}</span><span class="nav-label">{label}</span></button>'
 
 def main():
     params = st.query_params
     page = params.get("page", "dashboard")
 
     role = st.session_state.get("role", "staff")
+    username = st.session_state.get("username", "")
+    role_badge = f'<span class="role-badge">{role.title()}</span>'
+
+    # Desktop sidebar
+    sidebar_items = "".join(
+        render_nav_link(key, icon, label, page == key, "desktop-sidebar-nav", "sidebar-nav-item")
+        for icon, label, key in NAV_ITEMS
+    )
+    st.markdown(f"""
+    <div class="desktop-sidebar">
+        <div class="sidebar-logo">💈 Saloon Pro</div>
+        <div class="sidebar-user">{username} {role_badge}</div>
+        {sidebar_items}
+        <div style="margin-top:auto;padding:1rem 1.2rem;">
+            <button class="sidebar-nav-item" onclick="window.location.href='?page=settings'" type="button" style="border-left-color:transparent;{'color:#c084fc' if page == 'settings' else ''}">
+                <span class="nav-icon">⚙️</span><span class="nav-label">Settings</span>
+            </button>
+            <button class="sidebar-nav-item" onclick="window.location.href='?page=more'" type="button" style="border-left-color:transparent;{'color:#c084fc' if page == 'more' else ''}">
+                <span class="nav-icon">📋</span><span class="nav-label">More</span>
+            </button>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
 
     # Top bar
-    role_badge = f'<span class="role-badge">{role.title()}</span>'
     st.markdown(f"""
     <div class="app-topbar">
         <div class="app-title">💈 Saloon Pro</div>
-        <div class="app-user">{st.session_state.get("username", "")} {role_badge}
-            <a href="?page=settings" class="signout-btn" style="text-decoration:none;">⚙️</a>
+        <div class="app-user">{username} {role_badge}
+            <button class="signout-btn" onclick="window.location.href='?page=settings'" type="button" style="background:none;border:none;cursor:pointer;font-size:1rem;">⚙️</button>
         </div>
     </div>
     """, unsafe_allow_html=True)
@@ -1319,17 +1442,18 @@ def main():
         "invoices": invoices_page,
         "settings": settings_page,
         "more": more_page,
+        "ai_chat": ai_chat_page,
     }
 
     pages.get(page, dashboard_page)()
 
     st.markdown('</div>', unsafe_allow_html=True)
 
-    # Bottom nav
+    # Bottom nav (mobile)
     html = '<div class="bottom-nav">'
     for icon, label, key in NAV_ITEMS:
         active = "active" if key == page else ""
-        html += f'<a href="?page={key}" class="nav-item {active}"><span class="nav-icon">{icon}</span><span class="nav-label">{label}</span></a>'
+        html += f'<button class="nav-item {active}" onclick="window.location.href=\'?page={key}\'" type="button"><span class="nav-icon">{icon}</span><span class="nav-label">{label}</span></button>'
     html += '</div>'
     st.markdown(html, unsafe_allow_html=True)
 

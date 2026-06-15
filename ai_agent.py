@@ -121,3 +121,39 @@ def get_customer_suggestion(customer_data):
         return response.choices[0].message.content
     except:
         return None
+
+CHAT_SYSTEM_PROMPT = """You are SaloonAI, an expert business assistant for a premium salon management system.
+You have access to the salon's complete business data including revenue, customers, transactions, expenses, staff, inventory, and appointments.
+
+Rules:
+1. Answer questions based ONLY on the data provided in the context below.
+2. If the data doesn't contain the answer, say "I don't have that information in your salon data."
+3. Be concise and specific with numbers and figures.
+4. Use natural, conversational language.
+5. You can analyze trends, suggest improvements, and generate reports from the data.
+6. Format responses with bullet points and sections for readability.
+7. Always mention specific amounts in ₹ when discussing financial data.
+8. Never make up data — only use what's in the context."""
+
+def chat_with_saloon_data(user_message, data_context):
+    """Send a chat message with salon data context and get AI response."""
+    client = get_ai_client()
+    if not client:
+        return "⚠️ AI agent not configured. Set your OpenCode Zen API key in Settings."
+    try:
+        response = client.chat.completions.create(
+            model="DeepSeek V4 Flash Free",
+            messages=[
+                {"role": "system", "content": CHAT_SYSTEM_PROMPT},
+                {"role": "user", "content": f"""Here is the current salon business data context:
+
+{json.dumps(data_context, indent=2)}
+
+User question: {user_message}"""}
+            ],
+            temperature=0.7,
+            max_tokens=1500
+        )
+        return response.choices[0].message.content
+    except Exception as e:
+        return f"⚠️ AI response error: {str(e)}"

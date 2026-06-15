@@ -279,7 +279,9 @@ CSS = """
         transition: all 0.15s; text-decoration: none;
         display: flex; flex-direction: column; align-items: center; gap: 0.3rem;
         min-height: 80px; justify-content: center;
+        color: inherit; width: 100%; font-family: inherit;
     }
+    button.more-item { border: 1px solid rgba(255,255,255,0.06); }
     .more-grid .more-item:active { transform: scale(0.96); background: rgba(192,132,252,0.08); }
     .more-grid .more-item .mi-icon { font-size: 1.6rem; }
     .more-grid .more-item .mi-label { font-size: 0.75rem; font-weight: 600; color: rgba(255,255,255,0.6); }
@@ -290,11 +292,67 @@ CSS = """
         to { opacity: 1; transform: translateY(0); }
     }
 
-    /* ── Desktop Enhancements ── */
+    /* ── Desktop Sidebar ── */
+    .desktop-sidebar {
+        display: none;
+    }
+
     @media (min-width: 768px) {
         .app-content { max-width: 480px; margin: 0 auto; padding: 60px 0 72px 0; }
         .bottom-nav { max-width: 480px; left: 50%; transform: translateX(-50%); border-radius: 16px 16px 0 0; }
         .app-topbar { max-width: 480px; left: 50%; transform: translateX(-50%); border-radius: 0 0 12px 12px; }
+    }
+
+    @media (min-width: 1024px) {
+        body { padding-left: 220px; }
+
+        .desktop-sidebar {
+            display: flex; flex-direction: column;
+            position: fixed; top: 0; left: 0; bottom: 0; width: 220px; z-index: 1000;
+            background: linear-gradient(180deg, #1a1a2e, #0f0f1a);
+            border-right: 1px solid rgba(255,255,255,0.06);
+            padding: 1rem 0; overflow-y: auto;
+        }
+        .desktop-sidebar .sidebar-logo {
+            padding: 0.75rem 1.2rem; font-size: 1.1rem; font-weight: 800;
+            background: linear-gradient(135deg, #c084fc, #f472b6);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem;
+        }
+        .desktop-sidebar .sidebar-user {
+            padding: 0 1.2rem 0.75rem; font-size: 0.7rem;
+            color: rgba(255,255,255,0.35);
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            margin-bottom: 0.5rem;
+        }
+        .desktop-sidebar .sidebar-user .role-badge {
+            background: rgba(192,132,252,0.15); color: #c084fc;
+            padding: 0.1rem 0.4rem; border-radius: 20px;
+            font-size: 0.6rem; font-weight: 600;
+        }
+        .desktop-sidebar .sidebar-nav-item {
+            display: flex; align-items: center; gap: 0.6rem;
+            padding: 0.65rem 1.2rem; text-decoration: none;
+            color: rgba(255,255,255,0.45); font-size: 0.8rem; font-weight: 600;
+            transition: all 0.15s; border-left: 3px solid transparent;
+        }
+        .desktop-sidebar .sidebar-nav-item:hover {
+            background: rgba(255,255,255,0.04); color: rgba(255,255,255,0.8);
+        }
+        .desktop-sidebar .sidebar-nav-item.active {
+            background: rgba(192,132,252,0.08); color: #c084fc;
+            border-left-color: #c084fc;
+        }
+        .desktop-sidebar .sidebar-nav-item .nav-icon { font-size: 1.1rem; }
+        .desktop-sidebar .sidebar-nav-item .nav-label { }
+
+        .bottom-nav { display: none !important; }
+        .app-topbar { display: none !important; }
+
+        .app-content {
+            max-width: none !important; padding: 1.5rem 2rem !important;
+            margin: 0 !important; min-height: 100vh;
+        }
     }
 
     /* ── Scrollbar ── */
