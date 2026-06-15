@@ -3,5 +3,4 @@ __pycache__/
 data/salon.db
 data/backups/
 data/reports/
-.streamlit/secrets.toml
 *.tmp
