@@ -294,10 +294,9 @@ CSS = """
         to { opacity: 1; transform: translateY(0); }
     }
 
-    /* ── Desktop Sidebar ── */
-    .desktop-sidebar {
-        display: none;
-    }
+    /* ── Desktop Horizontal Nav ── */
+    .desktop-nav, .desktop-nav-inner, .desktop-nav-logo, .desktop-nav-links,
+    .desktop-nav-user, .desktop-nav-extra { display: none; }
 
     @media (min-width: 768px) {
         .app-content { max-width: 480px; margin: 0 auto; padding: 60px 0 72px 0; }
@@ -306,61 +305,81 @@ CSS = """
     }
 
     @media (min-width: 1024px) {
-        body { padding-left: 180px; }
-
-        .desktop-sidebar {
-            display: flex; flex-direction: column;
-            position: fixed; top: 0; left: 0; bottom: 0; width: 180px; z-index: 1000;
-            background: linear-gradient(180deg, #12121a, #0a0a0f);
-            border-right: 1px solid rgba(255,255,255,0.06);
-            padding: 0; overflow-y: auto;
-        }
-        .desktop-sidebar .sidebar-logo {
-            padding: 1rem 1rem 0.5rem; font-size: 1rem; font-weight: 800;
-            background: linear-gradient(135deg, #c084fc, #f472b6);
-            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-            display: flex; align-items: center; gap: 0.4rem; letter-spacing: -0.3px;
-        }
-        .desktop-sidebar .sidebar-user {
-            padding: 0 1rem 0.75rem; font-size: 0.65rem;
-            color: rgba(255,255,255,0.3);
-            border-bottom: 1px solid rgba(255,255,255,0.04);
-            margin-bottom: 0.25rem;
-        }
-        .desktop-sidebar .sidebar-user .role-badge {
-            background: rgba(192,132,252,0.12); color: #c084fc;
-            padding: 0.05rem 0.35rem; border-radius: 20px;
-            font-size: 0.55rem; font-weight: 600;
-        }
-        .desktop-sidebar .sidebar-nav-item {
-            display: flex; align-items: center; gap: 0.5rem;
-            padding: 0.5rem 1rem; text-decoration: none;
-            color: rgba(255,255,255,0.4); font-size: 0.75rem; font-weight: 500;
-            transition: all 0.15s; border-left: 2px solid transparent;
-            margin: 1px 0;
-        }
-        .desktop-sidebar .sidebar-nav-item:hover {
-            background: rgba(255,255,255,0.04); color: rgba(255,255,255,0.75);
-        }
-        .desktop-sidebar .sidebar-nav-item.active {
-            background: rgba(192,132,252,0.07); color: #c084fc;
-            border-left-color: #c084fc; font-weight: 600;
-        }
-        .desktop-sidebar .sidebar-nav-item .nav-icon { font-size: 1rem; width: 1.3rem; text-align: center; }
-        .desktop-sidebar .sidebar-nav-item .nav-label { }
-        .desktop-sidebar .sidebar-spacer { flex: 1; }
-
-        .bottom-nav { display: none !important; }
         .app-topbar { display: none !important; }
+        .bottom-nav { display: none !important; }
+
+        .desktop-nav { display: block; position: fixed; top: 0; left: 0; right: 0; z-index: 999; background: linear-gradient(135deg, #12121a, #1a1a2e); border-bottom: 1px solid rgba(255,255,255,0.06); backdrop-filter: blur(20px); }
+        .desktop-nav-inner { display: flex; align-items: center; max-width: 1400px; margin: 0 auto; padding: 0 1.5rem; height: 52px; gap: 0.25rem; }
+        .desktop-nav-logo { font-size: 1rem; font-weight: 800; background: linear-gradient(135deg, #c084fc, #f472b6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-right: 1rem; white-space: nowrap; display: flex; align-items: center; gap: 0.3rem; }
+        .desktop-nav-links { display: flex; align-items: center; gap: 0; flex: 1; }
+        .desktop-nav-user { font-size: 0.7rem; color: rgba(255,255,255,0.35); white-space: nowrap; margin: 0 0.5rem; }
+        .desktop-nav-user .role-badge { background: rgba(192,132,252,0.12); color: #c084fc; padding: 0.05rem 0.35rem; border-radius: 20px; font-size: 0.55rem; font-weight: 600; }
+        .desktop-nav-extra { display: flex; align-items: center; gap: 0; }
+
+        /* Desktop nav buttons */
+        .desktop-nav .stButton > button {
+            background: transparent !important; border: none !important;
+            box-shadow: none !important; color: rgba(255,255,255,0.5) !important;
+            font-size: 1.1rem !important; padding: 0.25rem 0.5rem !important;
+            min-height: 36px !important; border-radius: 8px !important;
+            transition: all 0.15s !important;
+        }
+        .desktop-nav .stButton > button:hover {
+            background: rgba(255,255,255,0.06) !important; color: #fff !important;
+        }
+        .desktop-nav .stButton > button:active, .desktop-nav .stButton > button:focus {
+            color: #c084fc !important; border: none !important; outline: none !important;
+        }
+        .desktop-nav .stButton { margin: 0 !important; }
+
+        /* Desktop nav extra buttons (⚙️ 📋) */
+        .desktop-nav-extra .stButton > button {
+            font-size: 1rem !important; padding: 0.25rem 0.4rem !important;
+            color: rgba(255,255,255,0.35) !important;
+        }
+        .desktop-nav-extra .stButton > button:hover { color: #c084fc !important; }
 
         .app-content {
-            max-width: none !important; padding: 1.5rem 2rem !important;
+            max-width: none !important; padding: 68px 2rem 2rem !important;
             margin: 0 !important; min-height: 100vh;
         }
-
-        .stApp { max-width: none !important; }
         .app-content .block-container { max-width: 1200px; margin: 0 auto; }
     }
+
+    /* ── Bottom Nav Button Styling ── */
+    .bottom-nav .stButton > button {
+        background: transparent !important; border: none !important;
+        box-shadow: none !important; font-size: 1.2rem !important;
+        padding: 0.2rem 0 !important; min-height: 44px !important;
+        border-radius: 0 !important; color: rgba(255,255,255,0.5) !important;
+        line-height: 1.15 !important; white-space: pre-line !important;
+        transition: all 0.15s !important;
+    }
+    .bottom-nav .stButton > button:hover {
+        color: rgba(255,255,255,0.8) !important; background: transparent !important;
+    }
+    .bottom-nav .stButton > button:active, .bottom-nav .stButton > button:focus {
+        color: #c084fc !important; background: transparent !important;
+        border: none !important; outline: none !important;
+    }
+    .bottom-nav .stButton { margin: 0 !important; }
+
+    /* ── More Grid Buttons ── */
+    .more-grid .stButton > button {
+        background: linear-gradient(135deg, rgba(255,255,255,0.04), rgba(255,255,255,0.01)) !important;
+        border: 1px solid rgba(255,255,255,0.06) !important; border-radius: 14px !important;
+        padding: 1.2rem 0.5rem !important; text-align: center !important;
+        min-height: 80px !important; height: 100% !important;
+        font-size: 0.75rem !important; font-weight: 600 !important;
+        color: rgba(255,255,255,0.6) !important; line-height: 1.4 !important;
+        white-space: pre-line !important; transition: all 0.15s !important;
+        box-shadow: none !important;
+    }
+    .more-grid .stButton > button:hover {
+        background: rgba(192,132,252,0.08) !important;
+        border-color: rgba(192,132,252,0.2) !important; color: #fff !important;
+    }
+    .more-grid .stButton { margin: 0 0 0.6rem 0 !important; }
 
     /* ── Scrollbar ── */
     ::-webkit-scrollbar { width: 0; height: 0; }

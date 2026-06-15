@@ -1272,18 +1272,18 @@ def settings_page():
 def more_page():
     role = st.session_state.get("role", "staff")
     render_header("More", "All features")
-    allowed = ["staff", "expenses", "inventory", "reports", "analytics", "invoices"]
     more_items = [(icon, label, key) for icon, label, key in [
         ("👨‍💼", "Staff", "staff"), ("📦", "Expenses", "expenses"), ("📦", "Stock", "inventory"),
         ("📄", "Reports", "reports"), ("📊", "AI Analytics", "analytics"), ("🧾", "Invoices", "invoices"),
         ("⚙️", "Settings", "settings"),
     ] if role == "admin" or key not in ["staff", "expenses", "inventory", "reports", "analytics", "invoices"]]
 
-    html = '<div class="more-grid">'
-    for icon, label, key in more_items:
-        html += f'<a href="?page={key}" class="more-item"><span class="mi-icon">{icon}</span><span class="mi-label">{label}</span></a>'
-    html += '</div>'
-    st.markdown(html, unsafe_allow_html=True)
+    mc = st.columns(2)
+    for idx, (icon, label, key) in enumerate(more_items):
+        with mc[idx % 2]:
+            if st.button(f"{icon}\n{label}", key=f"m_{key}", use_container_width=True):
+                st.query_params["page"] = key
+                st.rerun()
 
 
 def gather_salon_context():
@@ -1366,18 +1366,18 @@ def ai_chat_page():
     st.markdown("<br>", unsafe_allow_html=True)
     with st.expander("📋 Quick Actions (Staff, Expenses, Reports, etc.)"):
         role = st.session_state.get("role", "staff")
-        allowed = ["staff", "expenses", "inventory", "reports", "invoices", "settings"]
         quick_items = [
             ("👨‍💼", "Staff", "staff"), ("📦", "Expenses", "expenses"),
             ("📦", "Stock", "inventory"), ("📄", "Reports", "reports"),
             ("🧾", "Invoices", "invoices"), ("⚙️", "Settings", "settings"),
         ]
-        html = '<div class="more-grid">'
-        for icon, label, key in quick_items:
+        qc = st.columns(2)
+        for idx, (icon, label, key) in enumerate(quick_items):
             if role == "admin" or key not in ["staff", "expenses", "inventory", "reports", "analytics", "invoices"]:
-                html += f'<a href="?page={key}" class="more-item"><span class="mi-icon">{icon}</span><span class="mi-label">{label}</span></a>'
-        html += '</div>'
-        st.markdown(html, unsafe_allow_html=True)
+                with qc[idx % 2]:
+                    if st.button(f"{icon} {label}", key=f"q_{key}", use_container_width=True):
+                        st.query_params["page"] = key
+                        st.rerun()
 
     if st.button("🗑️ Clear Chat History", use_container_width=True):
         st.session_state.chat_history = []
@@ -1391,35 +1391,51 @@ def main():
     username = st.session_state.get("username", "")
     role_badge = f'<span class="role-badge">{role.title()}</span>'
 
-    def nav_link(key, icon, label, active, cls):
-        a = "active" if active else ""
-        return f'<a href="?page={key}" class="{cls} {a}"><span class="nav-icon">{icon}</span><span class="nav-label">{label}</span></a>'
+    def go(p):
+        st.query_params["page"] = p
+        st.rerun()
 
-    sidebar_main = "".join(nav_link(k, i, l, page == k, "sidebar-nav-item") for i, l, k in NAV_ITEMS)
-    sidebar_bottom = nav_link("settings", "⚙️", "Settings", page == "settings", "sidebar-nav-item") + \
-                     nav_link("more", "📋", "More", page == "more", "sidebar-nav-item")
-
-    st.markdown(f"""
-    <div class="desktop-sidebar">
-        <div class="sidebar-logo">💈 Saloon Pro</div>
-        <div class="sidebar-user">{username} {role_badge}</div>
-        {sidebar_main}
-        <div class="sidebar-spacer"></div>
-        {sidebar_bottom}
-    </div>
-    """, unsafe_allow_html=True)
-
-    # Top bar
+    # ── Mobile Top Bar (hidden on desktop) ──
     st.markdown(f"""
     <div class="app-topbar">
         <div class="app-title">💈 Saloon Pro</div>
         <div class="app-user">{username} {role_badge}
-            <a href="?page=settings" class="signout-btn">⚙️</a>
+            <span class="signout-btn" onclick="window.location.href='?page=settings'" style="cursor:pointer;">⚙️</span>
         </div>
     </div>
     """, unsafe_allow_html=True)
 
-    # Content area
+    # ── Desktop Horizontal Nav (hidden on mobile) ──
+    st.markdown(f"""
+    <div class="desktop-nav">
+        <div class="desktop-nav-inner">
+            <div class="desktop-nav-logo">💈 Saloon Pro</div>
+            <div class="desktop-nav-links" id="desktop-nav-links">
+    """, unsafe_allow_html=True)
+
+    dn_cols = st.columns(len(NAV_ITEMS))
+    for i, (icon, label, key) in enumerate(NAV_ITEMS):
+        with dn_cols[i]:
+            if st.button(icon, key=f"dn_{key}", help=label, use_container_width=True):
+                go(key)
+
+    st.markdown(f"""
+            </div>
+            <div class="desktop-nav-user">{username} {role_badge}</div>
+            <div class="desktop-nav-extra">
+    """, unsafe_allow_html=True)
+
+    ex_cols = st.columns(2)
+    with ex_cols[0]:
+        if st.button("📋", key="dn_more", help="More", use_container_width=True):
+            go("more")
+    with ex_cols[1]:
+        if st.button("⚙️", key="dn_settings", help="Settings", use_container_width=True):
+            go("settings")
+
+    st.markdown("</div></div></div>", unsafe_allow_html=True)
+
+    # ── Content Area ──
     st.markdown('<div class="app-content">', unsafe_allow_html=True)
 
     pages = {
@@ -1442,13 +1458,16 @@ def main():
 
     st.markdown('</div>', unsafe_allow_html=True)
 
-    # Bottom nav (mobile)
-    html = '<div class="bottom-nav">'
-    for icon, label, key in NAV_ITEMS:
-        active = "active" if key == page else ""
-        html += f'<a href="?page={key}" class="nav-item {active}"><span class="nav-icon">{icon}</span><span class="nav-label">{label}</span></a>'
-    html += '</div>'
-    st.markdown(html, unsafe_allow_html=True)
+    # ── Mobile Bottom Nav (hidden on desktop) ──
+    st.markdown('<div class="bottom-nav">', unsafe_allow_html=True)
+    bn_cols = st.columns(len(NAV_ITEMS))
+    for i, (icon, label, key) in enumerate(NAV_ITEMS):
+        with bn_cols[i]:
+            is_active = (key == page)
+            active_class = " nav-active" if is_active else ""
+            if st.button(f"{icon}\n{label}", key=f"bn_{key}", help=label, use_container_width=True):
+                go(key)
+    st.markdown('</div>', unsafe_allow_html=True)
 
 if __name__ == "__main__":
     main()
