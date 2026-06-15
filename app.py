@@ -1278,12 +1278,14 @@ def more_page():
         ("⚙️", "Settings", "settings"),
     ] if role == "admin" or key not in ["staff", "expenses", "inventory", "reports", "analytics", "invoices"]]
 
+    st.markdown('<div class="more-grid-btns">', unsafe_allow_html=True)
     mc = st.columns(2)
     for idx, (icon, label, key) in enumerate(more_items):
         with mc[idx % 2]:
             if st.button(f"{icon}\n{label}", key=f"m_{key}", use_container_width=True):
                 st.query_params["page"] = key
                 st.rerun()
+    st.markdown('</div>', unsafe_allow_html=True)
 
 
 def gather_salon_context():
@@ -1371,6 +1373,7 @@ def ai_chat_page():
             ("📦", "Stock", "inventory"), ("📄", "Reports", "reports"),
             ("🧾", "Invoices", "invoices"), ("⚙️", "Settings", "settings"),
         ]
+        st.markdown('<div class="more-grid-btns">', unsafe_allow_html=True)
         qc = st.columns(2)
         for idx, (icon, label, key) in enumerate(quick_items):
             if role == "admin" or key not in ["staff", "expenses", "inventory", "reports", "analytics", "invoices"]:
@@ -1378,6 +1381,7 @@ def ai_chat_page():
                     if st.button(f"{icon} {label}", key=f"q_{key}", use_container_width=True):
                         st.query_params["page"] = key
                         st.rerun()
+        st.markdown('</div>', unsafe_allow_html=True)
 
     if st.button("🗑️ Clear Chat History", use_container_width=True):
         st.session_state.chat_history = []

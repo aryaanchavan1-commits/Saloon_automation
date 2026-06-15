@@ -365,7 +365,7 @@ CSS = """
     .bottom-nav .stButton { margin: 0 !important; }
 
     /* ── More Grid Buttons ── */
-    .more-grid .stButton > button {
+    .more-grid-btns .stButton > button {
         background: linear-gradient(135deg, rgba(255,255,255,0.04), rgba(255,255,255,0.01)) !important;
         border: 1px solid rgba(255,255,255,0.06) !important; border-radius: 14px !important;
         padding: 1.2rem 0.5rem !important; text-align: center !important;
@@ -375,11 +375,11 @@ CSS = """
         white-space: pre-line !important; transition: all 0.15s !important;
         box-shadow: none !important;
     }
-    .more-grid .stButton > button:hover {
+    .more-grid-btns .stButton > button:hover {
         background: rgba(192,132,252,0.08) !important;
         border-color: rgba(192,132,252,0.2) !important; color: #fff !important;
     }
-    .more-grid .stButton { margin: 0 0 0.6rem 0 !important; }
+    .more-grid-btns .stButton { margin: 0 0 0.6rem 0 !important; }
 
     /* ── Scrollbar ── */
     ::-webkit-scrollbar { width: 0; height: 0; }
