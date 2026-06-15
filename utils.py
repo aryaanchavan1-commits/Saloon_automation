@@ -2,6 +2,7 @@ import pandas as pd
 from datetime import datetime, date, timedelta
 from database import session_scope, SessionLocal, Customer, Transaction, Staff, Expense, InventoryItem, Supplier, Appointment, Invoice, backup_database, restore_database, list_backups
 from sqlalchemy import func
+from sqlalchemy.orm import joinedload
 
 def load_customers():
     db = SessionLocal()
@@ -13,7 +14,7 @@ def load_customers():
 def load_transactions(limit=500):
     db = SessionLocal()
     try:
-        return db.query(Transaction).order_by(Transaction.timestamp.desc()).limit(limit).all()
+        return db.query(Transaction).options(joinedload(Transaction.customer)).order_by(Transaction.timestamp.desc()).limit(limit).all()
     finally:
         db.close()
 
@@ -463,7 +464,7 @@ TIME_SLOTS = [f"{h:02d}:{m:02d}" for h in range(9, 20) for m in [0, 30]]
 def load_appointments(date_filter=None):
     db = SessionLocal()
     try:
-        q = db.query(Appointment).order_by(Appointment.appointment_date, Appointment.appointment_time)
+        q = db.query(Appointment).options(joinedload(Appointment.customer), joinedload(Appointment.staff)).order_by(Appointment.appointment_date, Appointment.appointment_time)
         if date_filter:
             q = q.filter(Appointment.appointment_date == date_filter)
         return q.all()
@@ -529,7 +530,7 @@ def delete_appointment(apt_id):
 def get_appointments_by_date_range(start_date, end_date):
     db = SessionLocal()
     try:
-        return db.query(Appointment).filter(
+        return db.query(Appointment).options(joinedload(Appointment.customer), joinedload(Appointment.staff)).filter(
             Appointment.appointment_date.between(start_date, end_date)
         ).order_by(Appointment.appointment_date, Appointment.appointment_time).all()
     finally:
@@ -569,7 +570,7 @@ def create_invoice(transaction_id, customer_id, amount, tax_pct=0, discount=0):
 def load_invoices():
     db = SessionLocal()
     try:
-        return db.query(Invoice).order_by(Invoice.created_at.desc()).all()
+        return db.query(Invoice).options(joinedload(Invoice.customer)).order_by(Invoice.created_at.desc()).all()
     finally:
         db.close()
 
