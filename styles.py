@@ -62,6 +62,8 @@ CSS = """
         color: rgba(255,255,255,0.5); cursor: pointer;
         border-radius: 10px; padding: 0.3rem 0.6rem;
         font-size: 0.75rem; transition: all 0.2s;
+        text-decoration: none; display: inline-block;
+        line-height: 1.2;
     }
     .app-topbar .signout-btn:hover { background: rgba(248,113,113,0.2); color: #f87171; }
 
@@ -279,9 +281,9 @@ CSS = """
         transition: all 0.15s; text-decoration: none;
         display: flex; flex-direction: column; align-items: center; gap: 0.3rem;
         min-height: 80px; justify-content: center;
-        color: inherit; width: 100%; font-family: inherit;
+        color: inherit; width: 100%;
     }
-    button.more-item { border: 1px solid rgba(255,255,255,0.06); }
+    .more-grid .more-item:hover { background: rgba(192,132,252,0.08); border-color: rgba(192,132,252,0.2); }
     .more-grid .more-item:active { transform: scale(0.96); background: rgba(192,132,252,0.08); }
     .more-grid .more-item .mi-icon { font-size: 1.6rem; }
     .more-grid .more-item .mi-label { font-size: 0.75rem; font-weight: 600; color: rgba(255,255,255,0.6); }
@@ -304,47 +306,49 @@ CSS = """
     }
 
     @media (min-width: 1024px) {
-        body { padding-left: 220px; }
+        body { padding-left: 180px; }
 
         .desktop-sidebar {
             display: flex; flex-direction: column;
-            position: fixed; top: 0; left: 0; bottom: 0; width: 220px; z-index: 1000;
-            background: linear-gradient(180deg, #1a1a2e, #0f0f1a);
+            position: fixed; top: 0; left: 0; bottom: 0; width: 180px; z-index: 1000;
+            background: linear-gradient(180deg, #12121a, #0a0a0f);
             border-right: 1px solid rgba(255,255,255,0.06);
-            padding: 1rem 0; overflow-y: auto;
+            padding: 0; overflow-y: auto;
         }
         .desktop-sidebar .sidebar-logo {
-            padding: 0.75rem 1.2rem; font-size: 1.1rem; font-weight: 800;
+            padding: 1rem 1rem 0.5rem; font-size: 1rem; font-weight: 800;
             background: linear-gradient(135deg, #c084fc, #f472b6);
             -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-            display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem;
+            display: flex; align-items: center; gap: 0.4rem; letter-spacing: -0.3px;
         }
         .desktop-sidebar .sidebar-user {
-            padding: 0 1.2rem 0.75rem; font-size: 0.7rem;
-            color: rgba(255,255,255,0.35);
-            border-bottom: 1px solid rgba(255,255,255,0.05);
-            margin-bottom: 0.5rem;
+            padding: 0 1rem 0.75rem; font-size: 0.65rem;
+            color: rgba(255,255,255,0.3);
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+            margin-bottom: 0.25rem;
         }
         .desktop-sidebar .sidebar-user .role-badge {
-            background: rgba(192,132,252,0.15); color: #c084fc;
-            padding: 0.1rem 0.4rem; border-radius: 20px;
-            font-size: 0.6rem; font-weight: 600;
+            background: rgba(192,132,252,0.12); color: #c084fc;
+            padding: 0.05rem 0.35rem; border-radius: 20px;
+            font-size: 0.55rem; font-weight: 600;
         }
         .desktop-sidebar .sidebar-nav-item {
-            display: flex; align-items: center; gap: 0.6rem;
-            padding: 0.65rem 1.2rem; text-decoration: none;
-            color: rgba(255,255,255,0.45); font-size: 0.8rem; font-weight: 600;
-            transition: all 0.15s; border-left: 3px solid transparent;
+            display: flex; align-items: center; gap: 0.5rem;
+            padding: 0.5rem 1rem; text-decoration: none;
+            color: rgba(255,255,255,0.4); font-size: 0.75rem; font-weight: 500;
+            transition: all 0.15s; border-left: 2px solid transparent;
+            margin: 1px 0;
         }
         .desktop-sidebar .sidebar-nav-item:hover {
-            background: rgba(255,255,255,0.04); color: rgba(255,255,255,0.8);
+            background: rgba(255,255,255,0.04); color: rgba(255,255,255,0.75);
         }
         .desktop-sidebar .sidebar-nav-item.active {
-            background: rgba(192,132,252,0.08); color: #c084fc;
-            border-left-color: #c084fc;
+            background: rgba(192,132,252,0.07); color: #c084fc;
+            border-left-color: #c084fc; font-weight: 600;
         }
-        .desktop-sidebar .sidebar-nav-item .nav-icon { font-size: 1.1rem; }
+        .desktop-sidebar .sidebar-nav-item .nav-icon { font-size: 1rem; width: 1.3rem; text-align: center; }
         .desktop-sidebar .sidebar-nav-item .nav-label { }
+        .desktop-sidebar .sidebar-spacer { flex: 1; }
 
         .bottom-nav { display: none !important; }
         .app-topbar { display: none !important; }
@@ -353,6 +357,9 @@ CSS = """
             max-width: none !important; padding: 1.5rem 2rem !important;
             margin: 0 !important; min-height: 100vh;
         }
+
+        .stApp { max-width: none !important; }
+        .app-content .block-container { max-width: 1200px; margin: 0 auto; }
     }
 
     /* ── Scrollbar ── */

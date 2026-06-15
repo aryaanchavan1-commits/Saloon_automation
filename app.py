@@ -1281,7 +1281,7 @@ def more_page():
 
     html = '<div class="more-grid">'
     for icon, label, key in more_items:
-        html += f'<button class="more-item" onclick="window.location.href=\'?page={key}\'" type="button"><span class="mi-icon">{icon}</span><span class="mi-label">{label}</span></button>'
+        html += f'<a href="?page={key}" class="more-item"><span class="mi-icon">{icon}</span><span class="mi-label">{label}</span></a>'
     html += '</div>'
     st.markdown(html, unsafe_allow_html=True)
 
@@ -1375,17 +1375,13 @@ def ai_chat_page():
         html = '<div class="more-grid">'
         for icon, label, key in quick_items:
             if role == "admin" or key not in ["staff", "expenses", "inventory", "reports", "analytics", "invoices"]:
-                html += f'<button class="more-item" onclick="window.location.href=\'?page={key}\'" type="button"><span class="mi-icon">{icon}</span><span class="mi-label">{label}</span></button>'
+                html += f'<a href="?page={key}" class="more-item"><span class="mi-icon">{icon}</span><span class="mi-label">{label}</span></a>'
         html += '</div>'
         st.markdown(html, unsafe_allow_html=True)
 
     if st.button("🗑️ Clear Chat History", use_container_width=True):
         st.session_state.chat_history = []
         st.rerun()
-
-def render_nav_link(key, icon, label, active, container_class, item_class):
-    active_cls = f"{item_class} active" if active else item_class
-    return f'<button class="{active_cls}" onclick="window.location.href=\'?page={key}\'" type="button"><span class="nav-icon">{icon}</span><span class="nav-label">{label}</span></button>'
 
 def main():
     params = st.query_params
@@ -1395,24 +1391,21 @@ def main():
     username = st.session_state.get("username", "")
     role_badge = f'<span class="role-badge">{role.title()}</span>'
 
-    # Desktop sidebar
-    sidebar_items = "".join(
-        render_nav_link(key, icon, label, page == key, "desktop-sidebar-nav", "sidebar-nav-item")
-        for icon, label, key in NAV_ITEMS
-    )
+    def nav_link(key, icon, label, active, cls):
+        a = "active" if active else ""
+        return f'<a href="?page={key}" class="{cls} {a}"><span class="nav-icon">{icon}</span><span class="nav-label">{label}</span></a>'
+
+    sidebar_main = "".join(nav_link(k, i, l, page == k, "sidebar-nav-item") for i, l, k in NAV_ITEMS)
+    sidebar_bottom = nav_link("settings", "⚙️", "Settings", page == "settings", "sidebar-nav-item") + \
+                     nav_link("more", "📋", "More", page == "more", "sidebar-nav-item")
+
     st.markdown(f"""
     <div class="desktop-sidebar">
         <div class="sidebar-logo">💈 Saloon Pro</div>
         <div class="sidebar-user">{username} {role_badge}</div>
-        {sidebar_items}
-        <div style="margin-top:auto;padding:1rem 1.2rem;">
-            <button class="sidebar-nav-item" onclick="window.location.href='?page=settings'" type="button" style="border-left-color:transparent;{'color:#c084fc' if page == 'settings' else ''}">
-                <span class="nav-icon">⚙️</span><span class="nav-label">Settings</span>
-            </button>
-            <button class="sidebar-nav-item" onclick="window.location.href='?page=more'" type="button" style="border-left-color:transparent;{'color:#c084fc' if page == 'more' else ''}">
-                <span class="nav-icon">📋</span><span class="nav-label">More</span>
-            </button>
-        </div>
+        {sidebar_main}
+        <div class="sidebar-spacer"></div>
+        {sidebar_bottom}
     </div>
     """, unsafe_allow_html=True)
 
@@ -1421,7 +1414,7 @@ def main():
     <div class="app-topbar">
         <div class="app-title">💈 Saloon Pro</div>
         <div class="app-user">{username} {role_badge}
-            <button class="signout-btn" onclick="window.location.href='?page=settings'" type="button" style="background:none;border:none;cursor:pointer;font-size:1rem;">⚙️</button>
+            <a href="?page=settings" class="signout-btn">⚙️</a>
         </div>
     </div>
     """, unsafe_allow_html=True)
@@ -1453,7 +1446,7 @@ def main():
     html = '<div class="bottom-nav">'
     for icon, label, key in NAV_ITEMS:
         active = "active" if key == page else ""
-        html += f'<button class="nav-item {active}" onclick="window.location.href=\'?page={key}\'" type="button"><span class="nav-icon">{icon}</span><span class="nav-label">{label}</span></button>'
+        html += f'<a href="?page={key}" class="nav-item {active}"><span class="nav-icon">{icon}</span><span class="nav-label">{label}</span></a>'
     html += '</div>'
     st.markdown(html, unsafe_allow_html=True)
 
